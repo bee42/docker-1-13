@@ -1,4 +1,4 @@
-FROM nbrown/revealjs:3.4.0-onbuild
+FROM nbrown/revealjs:3.3.0-onbuild
 
 # Provide image labels in support of the Label Schema (http://label-schema.org)
 ARG BUILD_DATE
