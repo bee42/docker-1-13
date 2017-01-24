@@ -299,23 +299,6 @@ $ docker run --rm -it \
 ```
 
 ---
-## New –port flag in docker service create
-
-```
-$ docker service create --publish 8080:80 my-service
-```
-
-New port syntax:
-
-```
-$ docker service create \
-    --name my-service \
-    --port mode=ingress,target=80,published=8080,protocol=tcp
-```
-
-Allow more options at the future, like mounts at service!
-
----
 ## Links
 
 * https://blog.codeship.com/whats-new-docker-1-13
