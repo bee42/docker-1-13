@@ -6,4 +6,5 @@ Presentation about Docker 1.13
 
 ```bash
 make develop
+open localhost:8080
 ```
