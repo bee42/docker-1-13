@@ -6,22 +6,91 @@
 ### **Peter Rossbach**
 
 ---
-## Deploy with docker-componse
-
-https://github.com/docker/docker/issues/28527
-
-```bash
-$ docker stack deploy
-```
-**TODO**
-
--
-### docker-compose V3
+## Deploy with docker-compose
 
 ```
 $ docker stack deploy \
     --compose-file ./docker-compose.yml \
     mystack
+```
+***
+* https://docs.docker.com/compose/compose-file/#/deploy
+* https://github.com/docker/docker/issues/28527
+
+-
+### Simple placement
+```
+version: "3"
+services:
+  redis:
+    image: redis:3.2-alpine
+    ports:
+      - "6379"
+    networks:
+      - voteapp
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+
+```
+
+-
+### Add some service parameter
+```
+version: "3"
+services:
+  ...
+  xxx-app:
+    image: xxx-app
+    ports:
+      - 5000:80
+    networks:
+      - app
+    depends_on:
+      - redis
+    deploy:
+      mode: replicated
+      replicas: 2
+      labels: [APP=XXX]
+      placement:
+        constraints: [node.role == worker]
+```
+
+-
+### Add Resource constraints
+
+```
+  yyy-app:
+    deploy:
+      mode: replicated
+      replicas: 2
+      labels: [APP=XXX]
+      # service resource management
+      resources:
+        # Hard limit - Docker does not allow to allocate more
+        limits:
+          cpus: '0.25'
+          memory: 512M
+        # Soft limit - Docker makes best effort to return to it
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+      # service restart policy
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+      # service update configuration
+      update_config:
+        parallelism: 1
+        delay: 10s
+        failure_action: continue
+        monitor: 60s
+        max_failure_ratio: 0.3
+      # placement constraint - in this case on 'worker' nodes only
+      placement:
+        constraints: [node.role == worker]
 ```
 
 ---
@@ -69,8 +138,21 @@ Commands:
 Run 'docker system COMMAND --help' for more information on a command.
 ```
 
----
-## Remove unused things
+-
+### docker system df
+
+```
+$ docker system df
+```
+
+| TYPE          | TOTAL | ACTIVE | SIZE     | RECLAIMABLE     |
+|:--------------|:------|:-------|:---------|:----------------|
+| Images        | 75    | 1      | 8.132 GB | 7.401 GB (91%)  |
+| Containers    | 4     | 1      | 0 B      | 0 B             |
+| Local Volumes | 4     | 0      | 17.64 MB | 17.64 MB (100%) |
+
+-
+### Remove unused things
 
 ```bash
 $ docker container prune
@@ -306,3 +388,5 @@ $ docker run --rm -it \
 * https://blog.docker.com/2017/01/whats-new-in-docker-1-13/
 * https://blog.docker.com/2017/01/cpu-management-docker-1-13/
 * https://blog.nimbleci.com/2016/11/17/whats-coming-in-docker-1-13/
+* http://blog.terranillius.com/post/composev3_swarm/
+*
