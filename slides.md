@@ -6,7 +6,12 @@
 ### **Peter Rossbach**
 
 ---
-## Deploy with docker-compose
+## Docker Compose meets Swarm
+
+![](images/compose-meets-swarm.png)
+
+-
+### Deploy with docker-compose
 
 ```
 $ docker stack deploy \
@@ -27,15 +32,15 @@ services:
     ports:
       - "6379"
     networks:
-      - voteapp
+      - app
     deploy:
       placement:
         constraints: [node.role == manager]
-
 ```
 
 -
 ### Add some service parameter
+
 ```
 version: "3"
 services:
@@ -57,7 +62,7 @@ services:
 ```
 
 -
-### Add Resource constraints
+### Add Resource constraints I
 
 ```
   yyy-app:
@@ -76,6 +81,11 @@ services:
           cpus: '0.25'
           memory: 256M
       # service restart policy
+```
+-
+### Add Resource constraints II
+
+```
       restart_policy:
         condition: on-failure
         delay: 5s
@@ -105,7 +115,8 @@ Options:
       --help   Print usage
 
 Commands:
-  create      Create a plugin from a rootfs and configuration. Plugin data directory must contain config.json and rootfs directory.
+  create      Create a plugin from a rootfs and configuration.
+              Plugin data directory must contain config.json and rootfs directory.
   disable     Disable a plugin
   enable      Enable a plugin
   inspect     Display detailed information on one or more plugins
@@ -157,20 +168,23 @@ $ docker system df
 ```bash
 $ docker container prune
 ```
+
 ```bash
 $ docker image prune
 ```
+
 ```bash
 $ docker network prune
 ```
-$ ```bash
-docker container prune
+
+```bash
+$ docker container prune
 ```
 
 ---
 ## Activation of Experimental
 
-![](images/docker_experimental.jpg)
+![](images/docker_experimental.png)
 
 -
 ### Check before if the file exists
@@ -189,6 +203,7 @@ $ cat > /etc/docker/daemon.json <<EOF
 }
 EOF
 ```
+
 
 ---
 ## Container Snapshot and restore
@@ -298,13 +313,13 @@ $ docker start --checkpoint checkpoint1 cr
 $ docker attach cr
 ```
 
-## Or use it directly
+Or use it directly
 
 ```bash
 $ docker start -a --checkpoint checkpoint1 cr
 ```
 
-## For overview of the hole
+For overview of the hole
 
 Look at the logs
 
@@ -381,6 +396,77 @@ $ docker run --rm -it \
 ```
 
 ---
+## Docker Metrics - experimental
+
+```
+$ cat /etc/docker/daemon.json <<EOF
+{
+  "experimental":true,
+  "metrics-addr":"127.0.0.1:5050"
+}
+EOF
+$ docker run --rm --network=host alpine \
+  sh -c 'apk add --no-cache -q curl && curl localhost:5050/metrics'
+```
+
+***
+* Engine Metrics 1.13
+* Container metrics 1.14
+
+-
+###  Docker Metrics - prometheus
+
+```
+# HELP http_response_size_bytes The HTTP response sizes in bytes.
+# TYPE http_response_size_bytes summary
+http_response_size_bytes{handler="prometheus",quantile="0.5"} NaN
+http_response_size_bytes{handler="prometheus",quantile="0.9"} NaN
+http_response_size_bytes{handler="prometheus",quantile="0.99"} NaN
+http_response_size_bytes_sum{handler="prometheus"} 0
+http_response_size_bytes_count{handler="prometheus"} 0
+```
+
+---
+## Build your systems for friends
+
+![](images/build4friends.png)
+
+---
+## DevOps Gathering
+
+![](images/Logo_docker_gathering_quadrat_2017_RZ.png)
+
+* 23.3 Docker Workshop
+* 24.3 DevOps Talks & Trainings
+* 25.3 OpenSpace
+
+### Discount code: docker-bochum-10
+
+***
+https://devops-gathering.io
+
+---
+## Sponsoring
+
+***
+![](images/setlog.png)
+
+***
+![](images/gdata.png)
+
+---
+## Many Thanks for following!
+
+![](images/bee42-logo.png)
+
+* Start this presentation with
+  * `docker run -d -ti -p 4219:80 bee42/docker-1.13
+  * `open http://<dockerhost>:4219/docker-1.13`
+
+***
+* Follow the us [bee42.com](https://bee42.com)
+
+---
 ## Links
 
 * https://blog.codeship.com/whats-new-docker-1-13
@@ -389,4 +475,4 @@ $ docker run --rm -it \
 * https://blog.docker.com/2017/01/cpu-management-docker-1-13/
 * https://blog.nimbleci.com/2016/11/17/whats-coming-in-docker-1-13/
 * http://blog.terranillius.com/post/composev3_swarm/
-*
+* https://www.infoq.com/news/2017/01/docker-1.13
