@@ -166,7 +166,7 @@ $ docker system df
 ### Remove unused things
 
 ```bash
-$ docker container prune
+$ docker volume prune
 ```
 
 ```bash
@@ -179,6 +179,95 @@ $ docker network prune
 
 ```bash
 $ docker container prune
+```
+
+or all
+
+```bash
+$ docker system prune
+```
+***
+Use this command with **caution**
+
+---
+## Cache Layers When Building
+
+This means that we can go back to the old days of “pulling before building” to populate the build cache and avoid having to build all layers again.
+
+```
+$ docker pull myimage:v1.0
+$ docker build --cache-from myimage:v1.0 -t myimage:v1.1 .
+```
+
+***
+* https://github.com/docker/docker/pull/26839
+
+-
+## Squash image layers when building
+
+Squash newly built layers into a single new layer
+
+```bash
+$ docker build --squash=true -t ... <dir>
+```
+
+Normal ways to build smaller images
+
+* https://semaphoreci.com/blog/2016/12/13/lightweight-docker-images-in-5-steps.html
+
+---
+## Secrets Management for services
+
+```bash
+Usage:	docker secret COMMAND
+
+Manage Docker secrets
+
+Options:
+      --help   Print usage
+
+Commands:
+  create      Create a secret from a file or STDIN as content
+  inspect     Display detailed information on one or more secrets
+  ls          List secrets
+  rm          Remove one or more secrets
+
+Run 'docker secret COMMAND --help' for more information on a command.
+```
+
+```
+$ docker secret create --label env=dev --label rev=20170125 my_secret ./secret.json
+```
+
+-
+### Password examples
+
+```
+$ echo "my-cool-password" | docker secret create login-password
+$ docker service create \
+    --name myapp \
+    --secret login-password \
+    ubuntu
+# secret mount at /run/secrets/login-password
+$ docker exec -it myapp cat /run/secrets/login-password
+my-cool-password
+```
+
+---
+## Attach container to service mesh network
+
+```bash
+$ docker network create \
+    --driver overlay \
+    --attachable \
+    my-attachable-network
+```
+
+Then you can connect to this network with a container started with docker run:
+
+$ docker run --rm -it \
+    --net my-attachable-network \
+    ping google.com
 ```
 
 ---
@@ -327,73 +416,6 @@ Look at the logs
 $ docker logs cr
 ```
 
----
-## Cache Layers When Building
-
-This means that we can go back to the old days of “pulling before building” to populate the build cache and avoid having to build all layers again.
-
-```
-$ docker pull myimage:v1.0
-$ docker build --cache-from myimage:v1.0 -t myimage:v1.1 .
-```
-
-***
-* https://github.com/docker/docker/pull/26839
-
----
-## Secrets Management for services
-
-```bash
-Usage:	docker secret COMMAND
-
-Manage Docker secrets
-
-Options:
-      --help   Print usage
-
-Commands:
-  create      Create a secret from a file or STDIN as content
-  inspect     Display detailed information on one or more secrets
-  ls          List secrets
-  rm          Remove one or more secrets
-
-Run 'docker secret COMMAND --help' for more information on a command.
-```
-
-```
-$ docker secret create --label env=dev --label rev=20170125 my_secret ./secret.json
-```
-
--
-### Password examples
-
-```
-$ echo "my-cool-password" | docker secret create login-password
-$ docker service create \
-    --name myapp \
-    --secret login-password \
-    ubuntu
-# secret mount at /run/secrets/login-password
-$ docker exec -it myapp cat /run/secrets/login-password
-my-cool-password
-```
-
----
-## Attach container to service mesh network
-
-```bash
-$ docker network create \
-    --driver overlay \
-    --attachable \
-    my-attachable-network
-```
-
-Then you can connect to this network with a container started with docker run:
-
-$ docker run --rm -it \
-    --net my-attachable-network \
-    ping google.com
-```
 
 ---
 ## Docker Metrics - experimental
@@ -405,6 +427,7 @@ $ cat /etc/docker/daemon.json <<EOF
   "metrics-addr":"127.0.0.1:5050"
 }
 EOF
+# access it with docker for mac
 $ docker run --rm --network=host alpine \
   sh -c 'apk add --no-cache -q curl && curl localhost:5050/metrics'
 ```
